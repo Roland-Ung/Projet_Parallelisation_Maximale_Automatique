@@ -1,5 +1,6 @@
 import threading  # Pour lancer plusieurs fonctions en même temps (parallélisme)
 import time       # Pour mesurer le temps et faire des pauses
+import random
 import networkx as nx  # Pour créer la structure du graphe (les bulles et les flèches)
 import matplotlib.pyplot as plt  # Pour afficher le dessin du graphe à l'écran
 
@@ -85,6 +86,50 @@ class TaskSystem:
                     nouveau_graphe[p].append(enfant) # On ajoute la flèche p -> enfant
                     
         return nouveau_graphe
+
+    def detTestRnd(self, dico_global):
+        # On va faire le test 10 fois pour être sûr
+        resultats_trouves = []
+
+        for i in range(10):
+            # 1. On donne des valeurs aléatoires aux variables de lecture/écriture
+            # On parcourt toutes les tâches pour trouver les variables utilisées
+            for nom in self.tasks:
+                t = self.tasks[nom]
+                toutes_vars = t.reads + t.writes
+                for v in toutes_vars:
+                    # Si la variable existe dans le dictionnaire global
+                    if v in dico_global:
+                        # On lui donne un nombre au hasard entre 1 et 100
+                        dico_global[v] = random.randint(1, 100)
+
+            # 2. On lance l'exécution parallèle
+            self.run()
+
+            # 3. On enregistre l'état final des variables globales
+            # On crée une "photo" des valeurs actuelles
+            etat_final = {}
+            for nom in self.tasks:
+                t = self.tasks[nom]
+                for v in t.writes:
+                    if v in dico_global:
+                        etat_final[v] = dico_global[v]
+            
+            # On ajoute cette "photo" à notre liste de résultats
+            resultats_trouves.append(etat_final)
+
+        # 4. On compare : est-ce que les 10 photos sont identiques ?
+        premier_resultat = resultats_trouves[0]
+        est_determine = True
+        
+        for r in resultats_trouves:
+            if r != premier_resultat:
+                est_determine = False
+        
+        if est_determine == True:
+            print("Test réussi : Le système semble déterminé (résultats stables).")
+        else:
+            print("ALERTE : Le système n'est pas déterminé ! Les résultats changent.")
 
     def getDependencies(self, nomTache):
         # On veut savoir qui doit finir AVANT nomTache dans le graphe optimisé

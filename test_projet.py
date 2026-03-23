@@ -1,4 +1,4 @@
-from maxpar import Task, TaskSystem  # Importe tes classes Task et TaskSystem depuis ton fichier maxpar.py
+from maxpar import Task, TaskSystem
 import time  # Importe le module time pour pouvoir utiliser sleep (pause) et mesurer le temps
 
 # Variables globales qui servent de "mémoire partagée" entre les différentes tâches

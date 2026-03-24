@@ -53,14 +53,13 @@ class TaskSystem:
         t1 = self.tasks[t1_name]
         t2 = self.tasks[t2_name]
         
-        # On transforme les listes de variables en "Ensembles" (sets) pour comparer
         R1 = set(t1.reads)  # Lecture de T1
         W1 = set(t1.writes) # Écriture de T1
         R2 = set(t2.reads)  # Lecture de T2
         W2 = set(t2.writes) # Écriture de T2
         
         # On vérifie les 3 cas de conflit (Bernstein)
-        # .isdisjoint() veut dire "n'ont rien en commun"
+        # .isdisjoint() veut dire que leur intersection est vide
         conflit1 = not W1.isdisjoint(R2) # T1 écrit ce que T2 lit
         conflit2 = not W2.isdisjoint(R1) # T2 écrit ce que T1 lit
         conflit3 = not W1.isdisjoint(W2) # Les deux écrivent au même endroit

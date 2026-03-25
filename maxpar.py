@@ -47,27 +47,15 @@ class TaskSystem:
                 if p not in self.tasks:
                     print("ERREUR : Le parent " + p + " n'existe pas.")
 
-    def _bernstein(self, t1_name, t2_name):
-        # On récupère les deux objets tâches pour comparer leurs variables
-        t1 = self.tasks[t1_name]
-        t2 = self.tasks[t2_name]
-        
-        R1 = set(t1.reads)  # Lecture de T1
-        W1 = set(t1.writes) # Écriture de T1
-        R2 = set(t2.reads)  # Lecture de T2
-        W2 = set(t2.writes) # Écriture de T2
-        
-        # On vérifie les 3 cas de conflit (Bernstein)
-        # .isdisjoint() veut dire que leur intersection est vide
-        conflit1 = not W1.isdisjoint(R2) # T1 écrit ce que T2 lit
-        conflit2 = not W2.isdisjoint(R1) # T2 écrit ce que T1 lit
-        conflit3 = not W1.isdisjoint(W2) # Les deux écrivent au même endroit
-        
-        # Si un des conflits existe, on renvoie True (elles ne sont pas parallélisables)
-        if conflit1 or conflit2 or conflit3:
+    def conflict(self, t1, t2):
+        if set(t1.writes) & set(t2.reads): # T1 écrit ce que T2 lit
             return True
-        else:
-            return False
+        if set(t1.reads) & set(t2.writes): # T2 écrit ce que T1 lit
+            return True
+        if set(t1.writes) & set(t2.writes): # les deux écrivent au même endroit
+            return True
+
+        return False
 
     def _compute_max_parallelism(self):
         # On crée un nouveau dictionnaire pour le graphe optimisé
@@ -80,7 +68,7 @@ class TaskSystem:
             parents = self.precedence[enfant]
             for p in parents:
                 # On ne garde la flèche que si Bernstein dit que c'est risqué
-                if self._bernstein(p, enfant):
+                if self.conflict(self.tasks[p], self.tasks[enfant]):
                     nouveau_graphe[p].append(enfant) # On ajoute la flèche p -> enfant
                     
         return nouveau_graphe

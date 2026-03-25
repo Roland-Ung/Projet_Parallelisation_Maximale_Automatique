@@ -5,7 +5,7 @@ import networkx as nx  # Pour créer la structure du graphe (les bulles et les f
 import matplotlib.pyplot as plt  # Pour afficher le dessin du graphe à l'écran
 
 class Task:
-    # Le "formulaire" pour créer une tâche
+    # Les caractéristiques pour créer une tâche
     def __init__(self, name="", reads=None, writes=None, run=None):
         self.name = name  # Le nom de la tâche (ex: "T1")
         # Si l'utilisateur n'a rien mis dans reads, on crée une liste vide
@@ -20,15 +20,14 @@ class Task:
         else:
             self.writes = writes
             
-        self.run = run  # La fonction (le code) que la tâche doit exécuter
+        self.run = run  # La fonction que la tâche doit exécuter
 
 class TaskSystem:
     # Le constructeur qui prépare tout le système
-    def __init__(self, tasks, precedence_dict):
-        # On crée un dictionnaire vide pour ranger nos objets tâches
-        self.tasks = {}
-        for t in tasks: # Pour chaque tâche reçue dans la liste
-            self.tasks[t.name] = t # On la range avec son nom (ex: self.tasks["T1"])
+    def __init__(self, tasks, precedence_dict):        
+        self.tasks = {} # On crée un dictionnaire vide pour ranger les tâches
+        for t in tasks:
+            self.tasks[t.name] = t # Pour chaque tâche on la range avec son nom (ex: self.tasks["T1"])
             
         self.precedence = precedence_dict # On garde les règles de départ
         self._validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms

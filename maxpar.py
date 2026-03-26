@@ -127,9 +127,9 @@ class TaskSystem:
                 est_determine = False
         
         if est_determine == True:
-            print("Test réussi : Le système semble déterminé (résultats stables).")
+            print("Le test est validé, le système est déterminé (résultats stables).")
         else:
-            print("ALERTE : Le système n'est pas déterminé ! Les résultats changent.")
+            print("Le système n'est pas déterminé ! Les résultats changent.")
 
     def getDependencies(self, nomTache):
         # On veut savoir qui doit finir AVANT nomTache dans le graphe optimisé

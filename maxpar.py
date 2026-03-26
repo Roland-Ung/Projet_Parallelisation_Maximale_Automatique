@@ -27,25 +27,40 @@ class TaskSystem:
     def __init__(self, tasks, precedence_dict):        
         self.tasks = {} # On crée un dictionnaire vide pour ranger les tâches
         for t in tasks:
+            if t.name in self.tasks: # On vérifie s'il y a des doublons (2.4)
+                raise ValueError(f"ERREUR : Le nom de tâche '{t.name}' est dupliqué !")
             self.tasks[t.name] = t # Pour chaque tâche on la range avec son nom (ex: self.tasks["T1"])
             
         self.precedence = precedence_dict # On garde les règles de départ
         self._validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms
         self.max_parallel_graph = self._compute_max_parallelism() # le graphe final (celui optimisé)
-        
-    # 2.4 Validation des entrées
+    
+    # 2.4 Validation des entrées (noms existants)
     def _validate_inputs(self):
         # On vérifie que chaque nom dans les règles existe bien dans la liste des tâches
-        for nom_tache in self.precedence:
-            if nom_tache not in self.tasks:
-                print("ERREUR : La tâche " + nom_tache + " n'existe pas.")
+        for enfant, parents in self.precedence.items():
+            if enfant not in self.tasks: # Est-ce que l'enfant existe ?
+                raise ValueError(f"ERREUR : La tâche '{enfant}' n'existe pas")
             
-            # On vérifie aussi les parents (dépendances)
-            liste_parents = self.precedence[nom_tache]
-            for p in liste_parents:
+            for p in parents: # Est-ce que chaque parent existe ?
                 if p not in self.tasks:
-                    print("ERREUR : Le parent " + p + " n'existe pas.")
+                    raise ValueError(f"ERREUR : Le parent '{p}' n'existe pas.")
 
+    # 2.4 Validations des entrées (système indéterminé)
+    def _check_determinism(self):
+        # On compare toutes les tâches deux à deux
+        noms = list(self.tasks.keys()) # Liste des tâches
+        for i in range(len(noms)):
+            for j in range(i + 1, len(noms)):               
+                # S'il y a un conflit de Bernstein (Bernstein = True)
+                if self.conflict(self.tasks[noms[i]], self.tasks[noms[j]]):
+                    # .get() permet d'obtenir les parents, si aucun, ça renvoie []
+                    t2_vers_t1 = nom[j] in self.precedence.get(nom[i], []) # t2 est un parent de t1 ?
+                    t1_vers_t2 = nom[i] in self.precedence.get(nom[j], []) # t1 est un parent de t2 ?
+                    
+                    if not (t2_vers_t1 or t1_vers_t2): # Si aucun ordre de priorité
+                        raise ValueError(f"ERREUR : Les tâches {nom[i]} et {nom[j]} sont en conflit mais tournent en parallèle. Le système est indéterminé")
+    
     # conditions de Bernstein
     def conflict(self, t1, t2):
         if set(t1.writes) & set(t2.reads): # T1 écrit ce que T2 lit
@@ -173,7 +188,6 @@ class TaskSystem:
 
     # 2.5 Affichage du système de parallélisme maximal
     def draw(self):
-        # Dessine le graphe à l'écran
         G = nx.DiGraph(self.max_parallel_graph)
         nx.draw(G, with_labels=True, node_color='lightgreen', node_size=1500)
         plt.show()

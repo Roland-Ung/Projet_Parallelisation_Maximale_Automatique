@@ -23,7 +23,7 @@ class Task:
         self.run = run  # La fonction que la tâche doit exécuter
 
 class TaskSystem:
-    # Le constructeur qui prépare tout le système
+    # Construction d'un système de tâches
     def __init__(self, tasks, precedence_dict):        
         self.tasks = {} # On crée un dictionnaire vide pour ranger les tâches
         for t in tasks:
@@ -31,9 +31,7 @@ class TaskSystem:
             
         self.precedence = precedence_dict # On garde les règles de départ
         self._validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms
-        
-        # On calcule le graphe final (celui qui est optimisé)
-        self.max_parallel_graph = self._compute_max_parallelism()
+        self.max_parallel_graph = self._compute_max_parallelism() # le graphe final (celui optimisé)
 
     def _validate_inputs(self):
         # On vérifie que chaque nom dans les règles existe bien dans la liste des tâches
@@ -47,6 +45,7 @@ class TaskSystem:
                 if p not in self.tasks:
                     print("ERREUR : Le parent " + p + " n'existe pas.")
 
+    # conditions de Bernstein
     def conflict(self, t1, t2):
         if set(t1.writes) & set(t2.reads): # T1 écrit ce que T2 lit
             return True
@@ -57,22 +56,21 @@ class TaskSystem:
 
         return False
 
-    def _compute_max_parallelism(self):
-        # On crée un nouveau dictionnaire pour le graphe optimisé
-        nouveau_graphe = {}
-        for nom in self.tasks:
+    def _compute_max_parallelism(self):        
+        nouveau_graphe = {} # On crée un nouveau dictionnaire pour le graphe optimisé
+        for nom in self.tasks: # Pour chaque tâche, on prépare sa liste de successeur
             nouveau_graphe[nom] = [] # Liste vide de successeurs pour chaque tâche
             
-        # On regarde les règles de départ
         for enfant in self.precedence:
-            parents = self.precedence[enfant]
-            for p in parents:
-                # On ne garde la flèche que si Bernstein dit que c'est risqué
-                if self.conflict(self.tasks[p], self.tasks[enfant]):
-                    nouveau_graphe[p].append(enfant) # On ajoute la flèche p -> enfant
+            parents = self.precedence[enfant] # { enfant : [parents] }
+            for p in parents: # chaque parent de l'enfant
+                if self.conflict(self.tasks[p], self.tasks[enfant]): # parent et enfant dépendant ?
+                    nouveau_graphe[p].append(enfant) # Si oui on laisse la flèche parent -> enfant
+                    # Si non on casse la flèche, donc on maximise le parallélisme
                     
         return nouveau_graphe
 
+    # 2.6 Test randomisé de déterminisme
     def detTestRnd(self, dico_global):
         # On va faire le test 10 fois pour être sûr
         resultats_trouves = []
@@ -172,12 +170,14 @@ class TaskSystem:
                 deja_fait.append(nom)
                 a_faire.remove(nom)
 
+    # 2.5 Affichage du système de parallélisme maximal
     def draw(self):
         # Dessine le graphe à l'écran
         G = nx.DiGraph(self.max_parallel_graph)
         nx.draw(G, with_labels=True, node_color='lightgreen', node_size=1500)
         plt.show()
 
+    # 2.7 Coût du parallélisme
     def parCost(self):
         # Mesure du temps séquentiel
         start_seq = time.time()

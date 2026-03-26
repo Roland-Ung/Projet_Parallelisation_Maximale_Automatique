@@ -55,11 +55,11 @@ class TaskSystem:
                 # S'il y a un conflit de Bernstein (Bernstein = True)
                 if self.conflict(self.tasks[noms[i]], self.tasks[noms[j]]):
                     # .get() permet d'obtenir les parents, si aucun, ça renvoie []
-                    t2_vers_t1 = nom[j] in self.precedence.get(nom[i], []) # t2 est un parent de t1 ?
-                    t1_vers_t2 = nom[i] in self.precedence.get(nom[j], []) # t1 est un parent de t2 ?
+                    t2_vers_t1 = noms[j] in self.precedence.get(noms[i], []) # t2 est un parent de t1 ?
+                    t1_vers_t2 = noms[i] in self.precedence.get(noms[j], []) # t1 est un parent de t2 ?
                     
                     if not (t2_vers_t1 or t1_vers_t2): # Si aucun ordre de priorité
-                        raise ValueError(f"ERREUR : Les tâches {nom[i]} et {nom[j]} sont en conflit mais tournent en parallèle. Le système est indéterminé")
+                        raise ValueError(f"ERREUR : Les tâches {noms[i]} et {noms[j]} sont en conflit mais tournent en parallèle. Le système est indéterminé")
     
     # conditions de Bernstein
     def conflict(self, t1, t2):

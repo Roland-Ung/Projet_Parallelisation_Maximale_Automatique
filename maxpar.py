@@ -34,6 +34,7 @@ class TaskSystem:
         self.precedence = precedence_dict # On garde les règles de départ
         self._validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms
         self.max_parallel_graph = self._compute_max_parallelism() # le graphe final (celui optimisé)
+        self._check_determinism() # Vérification du déterminisme
     
     # 2.4 Validation des entrées (noms existants)
     def _validate_inputs(self):

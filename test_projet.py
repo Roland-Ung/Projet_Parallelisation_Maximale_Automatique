@@ -25,14 +25,8 @@ tSomme = Task("Somme", reads=["X", "Y"], writes=["Z"], run=runSomme) # Somme lit
 
 # --- Configuration du système de tâches ---
 
-initial_precedence = { # dictionnaire de précédence de départ (tout est enchainé)
-    "T1": [], # T1 n'a pas de parent
-    "T2": ["T1"], # T2 est l'enfant et attend son parent T1
-    "Somme": ["T1", "T2"] # Somme attend T1 et T2
-}
-
-# On crée l'instance du système. C'est ici que Bernstein va "casser" la flèche entre T1 et T2
-sys = TaskSystem([t1, t2, tSomme], initial_precedence)
+# T2 attend T1, et Somme attend T1 et T2. Mais T1 et T2 vont être parallélisés après Bernstein
+sys = TaskSystem([t1, t2, tSomme], {"T1": [], "T2": ["T1"], "Somme": ["T1", "T2"]})
 
 # Vérification : on demande qui doit s'exécuter avant "Somme" selon le calcul de Bernstein
 print("Dépendances de Somme :", sys.getDependencies("Somme"))

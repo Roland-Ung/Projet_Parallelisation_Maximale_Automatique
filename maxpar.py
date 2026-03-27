@@ -88,49 +88,37 @@ class TaskSystem:
         return nouveau_graphe
 
     # 2.6 Test randomisé de déterminisme
-    def detTestRnd(self, dico_global):
-        # On va faire le test 10 fois pour être sûr
-        resultats_trouves = []
+    def detTestRnd(self, globals_dict):
+        # On ne veut pas que le résultat change parce que les entrées changent
+        for var in globals_dict:
+            if isinstance(globals_dict[var], int): # On touche qu'au nombre entier du dictionnaire
+                globals_dict[var] = random.randint(0, 100) # On tire des valeurs au sort pour chaque variable entière du dictionnaire (ex: x, y, z)
 
-        for i in range(10):
-            # 1. On donne des valeurs aléatoires aux variables de lecture/écriture
-            # On parcourt toutes les tâches pour trouver les variables utilisées
-            for nom in self.tasks:
-                t = self.tasks[nom]
-                toutes_vars = t.reads + t.writes
-                for v in toutes_vars:
-                    # Si la variable existe dans le dictionnaire global
-                    if v in dico_global:
-                        # On lui donne un nombre au hasard entre 1 et 100
-                        dico_global[v] = random.randint(1, 100)
+        # On fait une "sauvegarde" de ces valeurs de départ
+        # .copy() est crucial pour ne pas modifier l'original par erreur
+        etat_initial = globals_dict.copy()   
+        results = []
 
-            # 2. On lance l'exécution parallèle
-            self.run()
+        # On teste en lançant le système 5 fois avec les MÊMES entrées
+        for _ in range(5):
+            globals_dict.update(etat_initial) # On remet les valeurs de départ
+            self.run() # On lance l'exécution parallèle (les threads)
 
-            # 3. On enregistre l'état final des variables globales
-            # On crée une "photo" des valeurs actuelles
-            etat_final = {}
-            for nom in self.tasks:
-                t = self.tasks[nom]
-                for v in t.writes:
-                    if v in dico_global:
-                        etat_final[v] = dico_global[v]
-            
-            # On ajoute cette "photo" à notre liste de résultats
-            resultats_trouves.append(etat_final)
+            # On ne garde que les variables entières (ex: {'X': 10, 'Y': 20})
+            final = {k: v for k, v in globals_dict.items() if isinstance(v, int)}
+            results.append(final) # On ajoute dans la liste des résultats
 
-        # 4. On compare : est-ce que les 10 photos sont identiques ?
-        premier_resultat = resultats_trouves[0]
-        est_determine = True
+        # On transforme chaque dictionnaire en texte (str) pour pouvoir les comparer
+        # Le 'set' élimine les doublons. S'il n'en reste qu'un, le système est déterminé
+        est_determine = len(set(str(r) for r in results)) == 1
         
-        for r in resultats_trouves:
-            if r != premier_resultat:
-                est_determine = False
-        
+        print(results) # Affichage des résultats
         if est_determine == True:
             print("Le test est validé, le système est déterminé (résultats stables).")
         else:
             print("Le système n'est pas déterminé ! Les résultats changent.")
+        
+        return est_determine
 
     def getDependencies(self, nomTache):
         # On veut savoir qui doit finir AVANT nomTache dans le graphe optimisé

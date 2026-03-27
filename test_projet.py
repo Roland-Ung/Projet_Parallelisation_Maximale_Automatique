@@ -43,3 +43,6 @@ sys.parCost() # compare runSeq() et run() sur plusieurs répétitions
 
 # Visualisation
 sys.draw()  # Ouvre une fenêtre pour montrer le graphe (T1 et T2 pointent vers Somme)
+
+# On passe 'globals()' qui contient toutes les variables de ce fichier (X, Y, Z...)
+sys.detTestRnd(globals())

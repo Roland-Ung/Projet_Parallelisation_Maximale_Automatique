@@ -5,18 +5,18 @@ import time  # Importe le module time pour pouvoir utiliser sleep (pause) et mes
 X, Y, Z = 0, 0, 0
 
 def runT1():
-    global X  # Indique que l'on va modifier la variable X définie à l'extérieur
-    time.sleep(0.1) # Simulation d'un calcul qui prend du temps (0.1 seconde)
-    X = 10  # Affecte la valeur 10 à X
+    global X  # On va modifier la variable X
+    time.sleep(0.1) # Simulation d'un calcul (0.1 seconde)
+    X = 10
 
 def runT2():
-    global Y  # Indique que l'on va modifier la variable Y définie à l'extérieur
+    global Y  # On va modifier la variable Y
     time.sleep(0.1)  # Simulation d'un calcul (0.1 seconde)
-    Y = 20  # Affecte la valeur 20 à Y
+    Y = 20
 
 def runSomme():
     global X, Y, Z  # Accède aux variables X et Y pour lire, et Z pour écrire
-    Z = X + Y  # Calcule la somme et stocke le résultat dans Z
+    Z = X + Y
 
 # Création des tâches
 t1 = Task("T1", reads=[], writes=["X"], run=runT1) # T1 ne lit rien mais écrit dans X

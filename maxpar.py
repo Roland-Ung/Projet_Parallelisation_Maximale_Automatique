@@ -88,24 +88,24 @@ class TaskSystem:
         return nouveau_graphe
 
     # 2.6 Test randomisé de déterminisme
-    def detTestRnd(self, globals_dict):
+    def detTestRnd(self, globals):
         # On ne veut pas que le résultat change parce que les entrées changent
-        for var in globals_dict:
-            if isinstance(globals_dict[var], int): # On touche qu'au nombre entier du dictionnaire
-                globals_dict[var] = random.randint(0, 100) # On tire des valeurs au sort pour chaque variable entière du dictionnaire (ex: x, y, z)
+        for var in globals:
+            if isinstance(globals[var], int): # On touche qu'au nombre entier du dictionnaire
+                globals[var] = random.randint(0, 100) # On tire des valeurs au sort pour chaque variable entière du dictionnaire (ex: x, y, z)
 
         # On fait une "sauvegarde" de ces valeurs de départ
         # .copy() est crucial pour ne pas modifier l'original par erreur
-        etat_initial = globals_dict.copy()   
+        etat_initial = globals.copy()   
         results = []
 
         # On teste en lançant le système 5 fois avec les MÊMES entrées
         for _ in range(5):
-            globals_dict.update(etat_initial) # On remet les valeurs de départ
+            globals.update(etat_initial) # On remet les valeurs de départ
             self.run() # On lance l'exécution parallèle (les threads)
 
             # On ne garde que les variables entières (ex: {'X': 10, 'Y': 20})
-            final = {k: v for k, v in globals_dict.items() if isinstance(v, int)}
+            final = {k: v for k, v in globals.items() if isinstance(v, int)}
             results.append(final) # On ajoute dans la liste des résultats
 
         # On transforme chaque dictionnaire en texte (str) pour pouvoir les comparer

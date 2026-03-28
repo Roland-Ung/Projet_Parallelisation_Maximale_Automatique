@@ -33,9 +33,9 @@ class TaskSystem:
             self.tasks[t.name] = t # Pour chaque tâche on la range avec son nom (ex: self.tasks["T1"])
             
         self.precedence = precedence_dict # On garde le dictionnaire de précédence
-        self._validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms
-        self.max_parallel_graph = self._compute_max_parallelism() # le graphe final (celui optimisé)
-        self._check_determinism() # Vérification du déterminisme
+        self.validate_inputs() # On vérifie s'il n'y a pas d'erreurs de noms
+        self.max_parallel_graph = self.compute_max_parallelism() # le graphe final (celui optimisé)
+        self.check_determinism() # Vérification du déterminisme
     
     # Conditions de Bernstein
     def conflict(self, t1, t2):
@@ -49,7 +49,7 @@ class TaskSystem:
         return False
 
     # Parallélisation maximale
-    def _compute_max_parallelism(self):        
+    def compute_max_parallelism(self):        
         nouveau_graphe = {} # On crée un nouveau dictionnaire pour le graphe optimisé
         for nom in self.tasks:
             nouveau_graphe[nom] = [] # Liste vide de successeurs pour chaque tâche
@@ -117,7 +117,7 @@ class TaskSystem:
 # ----- 2.4 Validation des entrées -----
 
     # Vérification que chaque nom dans les règles existe bien dans la liste des tâches
-    def _validate_inputs(self):
+    def validate_inputs(self):
         for enfant, parents in self.precedence.items():
             if enfant not in self.tasks: # Est-ce que l'enfant existe ?
                 raise ValueError(f"ERREUR : La tâche '{enfant}' n'existe pas")
@@ -127,7 +127,7 @@ class TaskSystem:
                     raise ValueError(f"ERREUR : Le parent '{p}' n'existe pas.")
 
     # Vérification du déterminisme (Bernstein et ordre de priorité)
-    def _check_determinism(self):
+    def check_determinism(self):
         # On compare toutes les tâches deux à deux
         noms = list(self.tasks.keys()) # Liste des tâches
         for i in range(len(noms)):

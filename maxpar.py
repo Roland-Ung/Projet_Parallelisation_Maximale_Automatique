@@ -36,17 +36,6 @@ class TaskSystem:
         self.max_parallel_graph = self._compute_max_parallelism() # le graphe final (celui optimisé)
         self._check_determinism() # Vérification du déterminisme
     
-    # 2.4 Validation des entrées (noms existants)
-    def _validate_inputs(self):
-        # On vérifie que chaque nom dans les règles existe bien dans la liste des tâches
-        for enfant, parents in self.precedence.items():
-            if enfant not in self.tasks: # Est-ce que l'enfant existe ?
-                raise ValueError(f"ERREUR : La tâche '{enfant}' n'existe pas")
-            
-            for p in parents: # Est-ce que chaque parent existe ?
-                if p not in self.tasks:
-                    raise ValueError(f"ERREUR : Le parent '{p}' n'existe pas.")
-    
     # conditions de Bernstein
     def conflict(self, t1, t2):
         if set(t1.writes) & set(t2.reads): # T1 écrit ce que T2 lit
@@ -82,48 +71,55 @@ class TaskSystem:
         return liste_predecesseurs
 
     def runSeq(self):
-        # On transforme notre dictionnaire en un vrai objet Graphe NetworkX
-        G = nx.DiGraph(self.max_parallel_graph)
-        # On demande à NetworkX l'ordre logique (T1 avant Somme, etc.)
-        ordre = list(nx.topological_sort(G))
+        G = nx.DiGraph(self.max_parallel_graph) # De dictionnaire à graphe orienté
+        ordre = list(nx.topological_sort(G)) # NetworkX analyse le graphe et trouve l'ordre d'éxécution (T1, T2, Somme)
         
         for nom in ordre:
-            self.tasks[nom].run() # On lance la fonction de la tâche
+            self.tasks[nom].run() # On lance la fonction de chaque tâche
 
+    # Exécution parallèle par étapes
     def run(self):
-        # Exécution parallèle par étapes
         G = nx.DiGraph(self.max_parallel_graph)
         deja_fait = [] # Tâches terminées
-        a_faire = list(self.tasks.keys()) # Tâches restantes
+        a_faire = list(self.tasks.keys()) # (T1, T2, Somme) Tâches restantes
         
-        while len(a_faire) > 0:
+        while len(a_faire) > 0: # Tant qu'on a pas fini la liste des tâches à faire
             pret_a_lancer = [] # Tâches qui n'ont plus de parents à attendre
             
+            # On va voir quels tâches sont prêtes à être lancées (ceux sans parents non terminés)
             for t in a_faire:
-                # On récupère les parents de la tâche dans le graphe
-                parents = list(G.predecessors(t))
+                parents = list(G.predecessors(t)) # On récupère les parents de chaque tâche (s'ils en ont)
                 tous_finis = True
-                for p in parents:
+                for p in parents: # Si aucun parent, pas de boucle
                     if p not in deja_fait:
-                        tous_finis = False
+                        tous_finis = False # Si ce n'est pas encore fait, on peut pas lancer la tâche
                 
                 if tous_finis == True:
                     pret_a_lancer.append(t) # La tâche est prête !
             
             ouvriers = [] # Liste des threads (fils d'exécution)
-            for nom in pret_a_lancer:
-                tache_objet = self.tasks[nom]
-                # On prépare un ouvrier pour lancer la fonction
-                nouveau_thread = threading.Thread(target=tache_objet.run)
+            for nom in pret_a_lancer:                
+                nouveau_thread = threading.Thread(target=self.tasks[nom].run) # On prépare un thread pour lancer la fonction
                 ouvriers.append(nouveau_thread)
-                nouveau_thread.start() # L'ouvrier commence son travail
+                nouveau_thread.start() # Le thread exécute la fonction de la tâche en parallèle (ex: T1 et T2 en même temps)
                 
-            for o in ouvriers: # On attend que tous les ouvriers du groupe finissent
+            for o in ouvriers: # On attend que tous les threads du groupe finissent
                 o.join()
                 
             for nom in pret_a_lancer: # Mise à jour des listes
                 deja_fait.append(nom)
                 a_faire.remove(nom)
+
+    # 2.4 Validation des entrées (noms existants)
+    def _validate_inputs(self):
+        # On vérifie que chaque nom dans les règles existe bien dans la liste des tâches
+        for enfant, parents in self.precedence.items():
+            if enfant not in self.tasks: # Est-ce que l'enfant existe ?
+                raise ValueError(f"ERREUR : La tâche '{enfant}' n'existe pas")
+            
+            for p in parents: # Est-ce que chaque parent existe ?
+                if p not in self.tasks:
+                    raise ValueError(f"ERREUR : Le parent '{p}' n'existe pas.")
 
     # 2.4 Validations des entrées (système indéterminé)
     def _check_determinism(self):

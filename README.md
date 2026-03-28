@@ -1,4 +1,4 @@
-# Projet_Parallelisation_maximale_automatique
+# Projet_Parallelisation_Maximale_Automatique
 
 ## Objectifs
 - Obtenir le système de tâches de parallélisme maximal réunissant les tâches en entrée

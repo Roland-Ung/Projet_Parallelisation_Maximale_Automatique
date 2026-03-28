@@ -132,7 +132,6 @@ class TaskSystem:
         noms = list(self.tasks.keys()) # Liste des tâches
         for i in range(len(noms)):
             for j in range(i + 1, len(noms)):               
-                # S'il y a un conflit de Bernstein (Bernstein = True)
                 if self.conflict(self.tasks[noms[i]], self.tasks[noms[j]]):
                     # .get() permet d'obtenir les parents, si aucun, ça renvoie []
                     t2_vers_t1 = noms[j] in self.precedence.get(noms[i], []) # t2 est un parent de t1 ?

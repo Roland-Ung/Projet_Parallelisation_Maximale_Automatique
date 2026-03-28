@@ -1,4 +1,4 @@
-from maxpar import Task, TaskSystem
+from maxpar import Task, TaskSystem  # Importe tes classes Task et TaskSystem depuis ton fichier maxpar.py
 import time  # Importe le module time pour pouvoir utiliser sleep (pause) et mesurer le temps
 
 # Variables globales qui servent de "mémoire partagée" entre les différentes tâches
@@ -41,8 +41,8 @@ print(f"Résultat final de Z: {Z}")  # Affiche le résultat (devrait être 30)
 print("Comparaison des performances :")
 sys.parCost() # compare runSeq() et run() sur plusieurs répétitions
 
-# Visualisation
-sys.draw()  # Ouvre une fenêtre pour montrer le graphe (T1 et T2 pointent vers Somme)
-
 # On passe 'globals()' qui contient toutes les variables de ce fichier (X, Y, Z...)
 sys.detTestRnd(globals())
+
+# Visualisation
+sys.draw()  # Ouvre une fenêtre pour montrer le graphe (T1 et T2 pointant vers Somme)

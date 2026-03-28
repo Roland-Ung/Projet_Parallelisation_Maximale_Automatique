@@ -8,13 +8,13 @@ class Task:
     # Les caractéristiques pour créer une tâche
     def __init__(self, name="", reads=None, writes=None, run=None):
         self.name = name  # Le nom de la tâche (ex: "T1")
-        # Si l'utilisateur n'a rien mis dans reads, on crée une liste vide
+        # Si on ne met rien dans reads, on crée une liste vide
         if reads == None:
             self.reads = []
         else:
             self.reads = reads
             
-        # Si l'utilisateur n'a rien mis dans writes, on crée une liste vide
+        # Si on ne met rien dans writes, on crée une liste vide
         if writes == None:
             self.writes = []
         else:
@@ -46,21 +46,6 @@ class TaskSystem:
             for p in parents: # Est-ce que chaque parent existe ?
                 if p not in self.tasks:
                     raise ValueError(f"ERREUR : Le parent '{p}' n'existe pas.")
-
-    # 2.4 Validations des entrées (système indéterminé)
-    def _check_determinism(self):
-        # On compare toutes les tâches deux à deux
-        noms = list(self.tasks.keys()) # Liste des tâches
-        for i in range(len(noms)):
-            for j in range(i + 1, len(noms)):               
-                # S'il y a un conflit de Bernstein (Bernstein = True)
-                if self.conflict(self.tasks[noms[i]], self.tasks[noms[j]]):
-                    # .get() permet d'obtenir les parents, si aucun, ça renvoie []
-                    t2_vers_t1 = noms[j] in self.precedence.get(noms[i], []) # t2 est un parent de t1 ?
-                    t1_vers_t2 = noms[i] in self.precedence.get(noms[j], []) # t1 est un parent de t2 ?
-                    
-                    if not (t2_vers_t1 or t1_vers_t2): # Si aucun ordre de priorité
-                        raise ValueError(f"ERREUR : Les tâches {noms[i]} et {noms[j]} sont en conflit mais tournent en parallèle. Le système est indéterminé")
     
     # conditions de Bernstein
     def conflict(self, t1, t2):
@@ -87,48 +72,13 @@ class TaskSystem:
                     
         return nouveau_graphe
 
-    # 2.6 Test randomisé de déterminisme
-    def detTestRnd(self, globals):
-        # On ne veut pas que le résultat change parce que les entrées changent
-        for var in globals:
-            if isinstance(globals[var], int): # On touche qu'au nombre entier du dictionnaire
-                globals[var] = random.randint(0, 100) # On tire des valeurs au sort pour chaque variable entière du dictionnaire (ex: x, y, z)
-
-        # On fait une "sauvegarde" de ces valeurs de départ
-        # .copy() est crucial pour ne pas modifier l'original par erreur
-        etat_initial = globals.copy()   
-        results = []
-
-        # On teste en lançant le système 5 fois avec les MÊMES entrées
-        for _ in range(5):
-            globals.update(etat_initial) # On remet les valeurs de départ
-            self.run() # On lance l'exécution parallèle (les threads)
-
-            # On ne garde que les variables entières (ex: {'X': 10, 'Y': 20})
-            final = {k: v for k, v in globals.items() if isinstance(v, int)}
-            results.append(final) # On ajoute dans la liste des résultats
-
-        # On transforme chaque dictionnaire en texte (str) pour pouvoir les comparer
-        # Le 'set' élimine les doublons. S'il n'en reste qu'un, le système est déterminé
-        est_determine = len(set(str(r) for r in results)) == 1
-        
-        print(results) # Affichage des résultats
-        if est_determine == True:
-            print("Le test est validé, le système est déterminé (résultats stables).")
-        else:
-            print("Le système n'est pas déterminé ! Les résultats changent.")
-        
-        return est_determine
-
     def getDependencies(self, nomTache):
-        # On veut savoir qui doit finir AVANT nomTache dans le graphe optimisé
-        liste_predecesseurs = []
-        # On parcourt notre graphe (parent -> liste d'enfants)
+        liste_predecesseurs = [] # Tâches qui doivent s'éxécuter avant nomTache
         for parent in self.max_parallel_graph:
             enfants = self.max_parallel_graph[parent]
-            # Si notre tâche est dans la liste des enfants de ce parent
-            if nomTache in enfants:
-                liste_predecesseurs.append(parent) # On ajoute le parent à la liste
+
+            if nomTache in enfants: # Si c'est la tâche qu'on cherche
+                liste_predecesseurs.append(parent) # On ajoute ses prédécesseurs à la liste
         return liste_predecesseurs
 
     def runSeq(self):
@@ -175,11 +125,59 @@ class TaskSystem:
                 deja_fait.append(nom)
                 a_faire.remove(nom)
 
+    # 2.4 Validations des entrées (système indéterminé)
+    def _check_determinism(self):
+        # On compare toutes les tâches deux à deux
+        noms = list(self.tasks.keys()) # Liste des tâches
+        for i in range(len(noms)):
+            for j in range(i + 1, len(noms)):               
+                # S'il y a un conflit de Bernstein (Bernstein = True)
+                if self.conflict(self.tasks[noms[i]], self.tasks[noms[j]]):
+                    # .get() permet d'obtenir les parents, si aucun, ça renvoie []
+                    t2_vers_t1 = noms[j] in self.precedence.get(noms[i], []) # t2 est un parent de t1 ?
+                    t1_vers_t2 = noms[i] in self.precedence.get(noms[j], []) # t1 est un parent de t2 ?
+                    
+                    if not (t2_vers_t1 or t1_vers_t2): # Si aucun ordre de priorité
+                        raise ValueError(f"ERREUR : Les tâches {noms[i]} et {noms[j]} sont en conflit mais tournent en parallèle. Le système est indéterminé")
+
     # 2.5 Affichage du système de parallélisme maximal
     def draw(self):
         G = nx.DiGraph(self.max_parallel_graph)
         nx.draw(G, with_labels=True, node_color='lightgreen', node_size=1500)
         plt.show()
+
+    # 2.6 Test randomisé de déterminisme
+    def detTestRnd(self, globals):
+        # On ne veut pas que le résultat change parce que les entrées changent
+        for var in globals:
+            if isinstance(globals[var], int): # On touche qu'au nombre entier du dictionnaire
+                globals[var] = random.randint(0, 100) # On tire des valeurs au sort pour chaque variable entière du dictionnaire (ex: x, y, z)
+
+        # On fait une "sauvegarde" de ces valeurs de départ
+        # .copy() est crucial pour ne pas modifier l'original par erreur
+        etat_initial = globals.copy()   
+        results = []
+
+        # On teste en lançant le système 5 fois avec les MÊMES entrées
+        for _ in range(5):
+            globals.update(etat_initial) # On remet les valeurs de départ
+            self.run() # On lance l'exécution parallèle (les threads)
+
+            # On ne garde que les variables entières (ex: {'X': 10, 'Y': 20})
+            final = {k: v for k, v in globals.items() if isinstance(v, int)}
+            results.append(final) # On ajoute dans la liste des résultats
+
+        # On transforme chaque dictionnaire en texte (str) pour pouvoir les comparer
+        # Le 'set' élimine les doublons. S'il n'en reste qu'un, le système est déterminé
+        est_determine = len(set(str(r) for r in results)) == 1
+        
+        print(results) # Affichage des résultats
+        if est_determine == True:
+            print("Le test est validé, le système est déterminé (résultats stables).")
+        else:
+            print("Le système n'est pas déterminé ! Les résultats changent.")
+        
+        return est_determine
 
     # 2.7 Coût du parallélisme
     def parCost(self):

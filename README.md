@@ -41,3 +41,14 @@ pip install -r requirements.txt
 ```bash
 python test_projet.py
 ```
+
+## Structure du projet
+```
+Projet_Parallelisation_Maximale_Automatique/
+│
+├── test_projet.py       Fichier de test
+├── maxpar.py            Bibliothèque : fonctionnalités sous forme de classes et de fonctions publiques
+├── .gitignore           Fichiers à exclure de Git
+├── requirements.txt     Liste des dépendances Python
+└── README.md
+```

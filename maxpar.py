@@ -180,15 +180,24 @@ class TaskSystem:
 # ----- 2.7 Coût du parallélisme -----
 
     def parCost(self):
-        # Mesure du temps séquentiel
-        start_seq = time.time()
-        self.runSeq()
-        temps_seq = time.time() - start_seq
-        
-        # Mesure du temps parallèle
-        start_par = time.time()
-        self.run()
-        temps_par = time.time() - start_par
-        
-        print("Résultat Temps Séquentiel : " + str(round(temps_seq, 4)) + " s")
-        print("Résultat Temps Parallèle : " + str(round(temps_par, 4)) + " s")
+    # Mesure du temps séquentiel
+    start_seq = time.time()
+    self.runSeq()
+    temps_seq = time.time() - start_seq
+    
+    # Mesure du temps parallèle
+    start_par = time.time()
+    self.run()
+    temps_par = time.time() - start_par
+    
+    print("Résultat Temps Séquentiel : " + str(round(temps_seq, 4)) + " s")
+    print("Résultat Temps Parallèle : " + str(round(temps_par, 4)) + " s")
+    
+    if temps_seq < temps_par:
+        diff = round(temps_par - temps_seq, 4)
+        print(f"L'exécution séquentielle est plus rapide de {diff} s")
+    elif temps_par < temps_seq:
+        diff = round(temps_seq - temps_par, 4)
+        print(f"L'exécution parallèle est plus rapide de {diff} s")
+    else:
+        print("Les deux exécutions ont pris le même temps")

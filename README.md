@@ -1,5 +1,9 @@
 # Projet_Parallelisation_Maximale_Automatique
 
+## Membres
+- UNG Roland
+- BERNABEO Jeff
+
 ## Objectifs
 - Obtenir le système de tâches de parallélisme maximal réunissant les tâches en entrée
 - Exécuter le système de tâches de façon séquentielle, tout en respectant les contraintes de précédence
